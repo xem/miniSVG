@@ -1,0 +1,295 @@
+﻿<table border>
+<tr>
+  <th>Editor<th>MiniSVG (hex)<th>SVG<th>JS canvas2d
+<tr>
+  <td>
+    <b>Ellipse:</b>
+    <br>
+    cx <input id=ellipse_cx type=number min=0 max=255 value=0>
+    cy <input id=ellipse_cy type=number min=0 max=255 value=0>
+    rx <input id=ellipse_rx type=number min=0 max=255 value=0>
+    ry <input id=ellipse_ry type=number min=0 max=255 value=0>
+    <br>
+    <input type=checkbox id=ellipse_fill>
+    fill <input type=color id=ellipse_fillcolor>
+    <br><input type=checkbox id=ellipse_alpha>
+    fill-opacity <input type=number id=ellipse_fillopacity value=255> (0-255)
+    <br>
+    <input type=checkbox id=ellipse_stroke>
+    stroke <input type=color id=ellipse_strokecolor>
+    stroke-width <input type=number id=ellipse_strokewidth value=0>
+    <br>
+    <input type=checkbox id=ellipse_strokedasharray>
+    stroke-dasharray <input type=number id=ellipse_strokedasharray1 value=0>,<input type=number id=ellipse_strokedasharray2 value=0>
+    <br>
+    <button id=ellipse_add>add</button>
+    
+    <br>
+    <br>
+    <hr>
+    <br>
+    
+    <b>Rect:</b>
+    <br>
+    x <input id=rect_x type=number min=0 max=255 value=0>
+    y <input id=rect_y type=number min=0 max=255 value=0>
+    width <input id=rect_width type=number min=0 max=255 value=0>
+    height <input id=rect_height type=number min=0 max=255 value=0>
+    <br>
+    <input type=checkbox id=rect_fill>
+    fill <input type=color id=rect_fillcolor>
+    <br><input type=checkbox id=rect_alpha>
+    fill-opacity <input type=number id=rect_fillopacity value=255> (0-255)
+    <br>
+    <input type=checkbox id=rect_stroke>
+    stroke <input type=color id=rect_strokecolor>
+    stroke-width <input type=number id=rect_strokewidth value=0>
+    <br>
+    <input type=checkbox id=rect_strokedasharray>
+    stroke-dasharray <input type=number id=rect_strokedasharray1 value=0>,<input type=number id=rect_strokedasharray2 value=0>
+    <br>
+    <button id=rect_add>add</button>
+    
+    
+    <!--
+    <br>
+    <br>
+    <hr>
+    <br>
+    
+    <b>Text:</b>
+    <br>
+    x <input id=text_x type=number min=0 max=255>
+    y <input id=text_y type=number min=0 max=255>
+    font-size <input id=text_font-size type=number min=0 max=255>
+    <br>
+    font <input id=text_font min=0 max=255>
+    text <input id=text_text min=0 max=255>
+    <br>
+    <input type=checkbox id=text_fill>
+    fill <input type=color id=text_fillcolor>
+    opacity <input type=number id=text_fillopacity>
+    <br>
+    <input type=checkbox id=text_stroke> stroke <input type=color id=text_strokecolor>
+    width <input type=number id=text_strokewidth>
+    dash <input type=number id=text_strokedasharray1><input type=number id=text_strokedasharray2>
+    <br>
+    <button id=text_add>add</button>
+    
+    
+    <br>
+    <br>
+    <hr>
+    <br>
+    
+    <b>Path:</b>
+    <br>
+    todo
+    -->
+    
+    
+  <td>
+    <textarea id=minisvg style="height:100%"></textarea>
+  <td>
+    <textarea id=svg><svg width=255 height=255></textarea>
+    <br>
+    <div id=svgdemo></div>
+  <td>
+    <textarea id=canvas></textarea>
+    <br>
+    <canvas width=255 height=255 id=canvasdemo></canvas>
+</table>
+<style>
+body { font: 12px arial }
+table { width: 98%; height: 98% }
+th { height: 30px }
+th, td { width: 25% }
+td { vertical-align: top; padding: 15px; }
+b { display: block }
+textarea { width: 100%; height: calc(100% - 300px) }
+input { width: 100px; margin: 3px }
+input[type=number]{ width: 50px }
+input[type=color] { width: 40px }
+input[type=checkbox] { width: 10px }
+</style>
+
+<script>
+
+to16 = (n) => (("00" + (+n).toString(16)).slice(-2) + " ");
+ctx = canvasdemo.getContext("2d");
+
+minisvg.value = "";
+canvas.value = "";
+svg.value = "<svg width=255 height=255>\n";
+
+ellipse_add.onclick = () => {
+  
+  canvasdemo.width ^= 0;
+  
+  item = 0b10000000;
+  if(ellipse_fill.checked){
+    item += 0b00010000;
+  }
+  if(ellipse_alpha.checked){
+    item += 0b00001000;
+  }
+  if(ellipse_stroke.checked){
+    item += 0b00000100;
+  }
+  if(ellipse_strokedasharray.checked){
+    item += 0b00000010;
+  }
+  
+  minisvg.value += to16(item);
+  minisvg.value += to16(ellipse_cx.value);
+  minisvg.value += to16(ellipse_cy.value);
+  minisvg.value += to16(ellipse_rx.value);
+  minisvg.value += to16(ellipse_ry.value);
+  
+  svg_code = "<ellipse cx='" + ellipse_cx.value + "' cy='" + ellipse_cy.value + "' rx='" + ellipse_rx.value + "' ry='" + ellipse_ry.value + "'";
+  
+  if(ellipse_fill.checked){
+    minisvg.value += ellipse_fillcolor.value.replace(/#(..)(..)(..)/,"$1 $2 $3 ");
+    svg_code += " fill='" + ellipse_fillcolor.value + "'";
+  }
+  if(ellipse_alpha.checked){
+    minisvg.value += to16(ellipse_fillopacity.value);
+    svg_code += " fill-opacity='" + (ellipse_fillopacity.value ? (ellipse_fillopacity.value/255).toFixed(2) : 0) + "'";
+  }
+  if(ellipse_stroke.checked){
+    minisvg.value += ellipse_strokecolor.value.replace(/#(..)(..)(..)/,"$1 $2 $3 ");
+    minisvg.value += to16(ellipse_strokewidth.value);
+    svg_code += " stroke='" + ellipse_strokecolor.value + "' stroke-width='" + ellipse_strokewidth.value + "'";
+  }
+  if(ellipse_strokedasharray.checked){
+    minisvg.value += to16(ellipse_strokedasharray1.value);
+    minisvg.value += to16(ellipse_strokedasharray2.value);
+    svg_code += " stroke-dasharray='" + ellipse_strokedasharray1.value + "," + ellipse_strokedasharray2.value + "'";
+  }
+  
+  svg.value += svg_code + "></ellipse>\n";
+  svgdemo.innerHTML = svg.value;
+  
+  canvas.value += "ctx.beginPath()\n";
+
+  if(ellipse_fill.checked){
+    canvas.value += "ctx.fillStyle = '" + ellipse_fillcolor.value + "';\n";
+  }
+  if(ellipse_alpha.checked){
+    canvas.value += "ctx.globalAlpha = " + (ellipse_fillopacity.value ? (ellipse_fillopacity.value/255).toFixed(2) : 0) + ";\n";
+  }
+  if(ellipse_stroke.checked){
+    canvas.value += "ctx.strokeStyle = '" + ellipse_strokecolor.value + "';\n";
+    canvas.value += "ctx.lineWidth = " + ellipse_strokewidth.value + ";\n";
+  }
+  if(ellipse_strokedasharray.checked){
+    canvas.value += "ctx.setLineDash([" + ellipse_strokedasharray1.value + "," + ellipse_strokedasharray2.value + "]);\n";
+  }
+  
+  canvas.value += "ctx.ellipse(" + ellipse_cx.value + "," + ellipse_cy.value + "," + ellipse_rx.value + "," + ellipse_ry.value + ",0,0,7);\n";
+  
+  if(ellipse_fill.checked){
+    canvas.value += "ctx.fill();\n";
+  }
+  if(ellipse_alpha.checked){
+    canvas.value += "ctx.globalAlpha = 1;\n";
+  }
+  if(ellipse_stroke.checked){
+    canvas.value += "ctx.stroke();\n";
+  }
+  
+  canvas.value += "ctx.closePath();\n";
+  
+  eval(canvas.value);
+  
+}
+
+rect_add.onclick = () => {
+  
+  canvasdemo.width ^= 0;
+  
+  item = 0b10100000;
+  if(ellipse_fill.checked){
+    item += 0b00010000;
+  }
+  if(ellipse_alpha.checked){
+    item += 0b00001000;
+  }
+  if(ellipse_stroke.checked){
+    item += 0b00000100;
+  }
+  if(ellipse_strokedasharray.checked){
+    item += 0b00000010;
+  }
+  
+  minisvg.value += to16(item);
+  minisvg.value += to16(rect_x.value);
+  minisvg.value += to16(rect_y.value);
+  minisvg.value += to16(rect_width.value);
+  minisvg.value += to16(rect_height.value);
+  
+  svg_code = "<rect x='" + rect_x.value + "' y='" + rect_y.value + "' width='" + rect_width.value + "' height='" + rect_height.value + "'";
+  
+  if(rect_fill.checked){
+    minisvg.value += rect_fillcolor.value.replace(/#(..)(..)(..)/,"$1 $2 $3 ");
+    svg_code += " fill='" + rect_fillcolor.value + "'";
+  }
+  if(rect_alpha.checked){
+    minisvg.value += to16(rect_fillopacity.value);
+    svg_code += " fill-opacity='" + (rect_fillopacity.value ? (rect_fillopacity.value/255).toFixed(2) : 0) + "'";
+  }
+  if(rect_stroke.checked){
+    minisvg.value += rect_strokecolor.value.replace(/#(..)(..)(..)/,"$1 $2 $3 ");
+    minisvg.value += to16(rect_strokewidth.value);
+    svg_code += " stroke='" + rect_strokecolor.value + "' stroke-width='" + rect_strokewidth.value + "'";
+  }
+  if(rect_strokedasharray.checked){
+    minisvg.value += to16(rect_strokedasharray1.value);
+    minisvg.value += to16(rect_strokedasharray2.value);
+    svg_code += " stroke-dasharray='" + rect_strokedasharray1.value + "," + rect_strokedasharray2.value + "'";
+  }
+  
+  svg.value += svg_code + "></rect>\n";
+  svgdemo.innerHTML = svg.value;
+  
+  
+  
+  
+  
+  canvas.value += "ctx.beginPath()\n";
+
+  if(rect_fill.checked){
+    canvas.value += "ctx.fillStyle = '" + rect_fillcolor.value + "';\n";
+  }
+  if(rect_alpha.checked){
+    canvas.value += "ctx.globalAlpha = " + (rect_fillopacity.value ? (rect_fillopacity.value/255).toFixed(2) : 0) + ";\n";
+  }
+  if(rect_stroke.checked){
+    canvas.value += "ctx.strokeStyle = '" + rect_strokecolor.value + "';\n";
+    canvas.value += "ctx.lineWidth = " + rect_strokewidth.value + ";\n";
+  }
+  if(rect_strokedasharray.checked){
+    canvas.value += "ctx.setLineDash([" + rect_strokedasharray1.value + "," + rect_strokedasharray2.value + "]);\n";
+  }
+  
+  canvas.value += "ctx.rect(" + rect_x.value + "," + rect_y.value + "," + rect_width.value + "," + rect_height.value + ");\n";
+  
+  if(rect_fill.checked){
+    canvas.value += "ctx.fill();\n";
+  }
+  if(rect_alpha.checked){
+    canvas.value += "ctx.globalAlpha = 1;\n";
+  }
+  if(rect_stroke.checked){
+    canvas.value += "ctx.stroke();\n";
+  }
+  
+  canvas.value += "ctx.closePath();\n";
+  
+  eval(canvas.value);
+  
+  
+}
+
+
+</script>
